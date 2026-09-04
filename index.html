@@ -482,10 +482,20 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
 
+  function shuffledIndices(length){
+    const arr = Array.from({length}, (_, i) => i);
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
   function selectHTML(id, options, placeholder="Choose..."){
+    const order = shuffledIndices(options.length);
     return `<select id="${id}" aria-label="${esc(placeholder)}">
       <option value="">${esc(placeholder)}</option>
-      ${options.map((x,i)=>`<option value="${i}">${esc(x)}</option>`).join("")}
+      ${order.map(i=>`<option value="${i}">${esc(options[i])}</option>`).join("")}
     </select>`;
   }
 
@@ -530,10 +540,10 @@
       <div class="q" id="fq${i}">
         <h4>${esc(q.label)}</h4>
         <div class="choice-set">
-        ${q.options.map((o,j)=>`
+        ${shuffledIndices(q.options.length).map(j=>`
           <label class="choice">
             <input type="radio" name="final${i}" value="${j}" />
-            <span>${esc(o)}</span>
+            <span>${esc(q.options[j])}</span>
           </label>`).join("")}
         </div>
         <div class="feedback" id="ff${i}"></div>
