@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tense Time Machine — Grade 12 Grammar Game</title>
+<style>
+  :root{
+    --bg:#f6f7fb;
+    --panel:#ffffff;
+    --ink:#172033;
+    --muted:#667085;
+    --line:#d8deea;
+    --accent:#3659e3;
+    --accent2:#6f48d8;
+    --good:#147d53;
+    --bad:#b42318;
+    --warn:#a15c00;
+    --soft:#eef2ff;
+    --shadow:0 8px 28px rgba(24,34,60,.10);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height:1.45;
+  }
+  button,input,select,textarea{font:inherit}
+  button,select,input[type="text"]{min-height:44px}
+  button{cursor:pointer}
+  .app{max-width:1000px;margin:0 auto;padding:20px}
+  .hero{
+    background:linear-gradient(135deg,#1f2a59 0%,#3348a5 52%,#633aa6 100%);
+    color:white;border-radius:24px;padding:28px;box-shadow:var(--shadow);margin-bottom:18px
+  }
+  .hero h1{margin:0 0 6px;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.03em}
+  .hero p{margin:5px 0;color:#eef1ff}
+  .topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .pill{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 12px;font-weight:700}
+  #timer.urgent{background:#fff3cd;color:#6d4600;border-color:#ffe08a}
+  #timer.expired{background:#fdecec;color:#8e1710;border-color:#f3b7b2}
+  .progress-shell{height:9px;background:rgba(255,255,255,.22);border-radius:999px;margin-top:18px;overflow:hidden}
+  #progressBar{height:100%;width:0;background:white;transition:width .25s ease}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin:16px 0}
+  .panel h2,.panel h3{margin-top:0}
+  .grid{display:grid;gap:14px}
+  .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .setup-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+  label{font-weight:750;display:block;margin-bottom:6px}
+  input[type="text"],select,textarea{
+    width:100%;border:1px solid #bfc8da;border-radius:11px;padding:10px 12px;background:white;color:var(--ink)
+  }
+  textarea{min-height:110px;resize:vertical}
+  input:focus,select:focus,textarea:focus,button:focus-visible{
+    outline:3px solid rgba(54,89,227,.25);outline-offset:2px;border-color:var(--accent)
+  }
+  .btn{
+    border:0;border-radius:12px;padding:11px 16px;font-weight:800;background:var(--accent);color:white
+  }
+  .btn.secondary{background:#eef2ff;color:#283b91;border:1px solid #cfd8ff}
+  .btn.ghost{background:white;color:var(--ink);border:1px solid var(--line)}
+  .btn.good{background:var(--good)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .support{
+    background:#fff8e8;border:1px solid #f1d79c;border-radius:14px;padding:14px;margin-top:14px
+  }
+  .support summary{font-weight:850;cursor:pointer}
+  .support-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+  .support-card{background:#fff;border:1px solid #efd9a8;border-radius:12px;padding:10px}
+  .round{display:none}
+  .round.active{display:block}
+  .round-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+  .round-tag{font-size:.8rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+  .q{
+    border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;background:#fff
+  }
+  .q.correct{border-color:#83c5aa;background:#f2fbf7}
+  .q.incorrect{border-color:#e4aaa6;background:#fff6f5}
+  .q h4{margin:0 0 8px;font-size:1rem}
+  .sentence{font-size:1.05rem;margin:8px 0 12px}
+  .answer-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .feedback{margin-top:10px;padding:10px 12px;border-radius:11px;display:none}
+  .feedback.show{display:block}
+  .feedback.good{background:#eaf7f1;color:#0d5b3d}
+  .feedback.bad{background:#fff0ef;color:#8d1b13}
+  .feedback.neutral{background:#f4f5f7;color:#394150}
+  .micro{font-size:.88rem;color:var(--muted)}
+  .scorebox{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  .metric{background:#f7f8fb;border:1px solid var(--line);border-radius:13px;padding:12px;text-align:center}
+  .metric strong{font-size:1.45rem;display:block}
+  .choice-set{display:grid;gap:8px}
+  .choice{
+    display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px;background:white
+  }
+  .choice input{margin-top:4px;transform:scale(1.15)}
+  .choice:has(input:checked){border-color:#94a8ff;background:#f4f6ff}
+  .badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:.77rem;font-weight:900;background:#eef2ff;color:#31469e}
+  .bonus{border-style:dashed;background:#fbfaff}
+  .final-slots{display:grid;gap:13px}
+  .summary{
+    background:linear-gradient(180deg,#ffffff,#f6f7ff);border:1px solid #cfd7ff;border-radius:18px;padding:18px
+  }
+  .summary h2{margin:0 0 8px}
+  .big-score{font-size:clamp(2.2rem,8vw,4.5rem);font-weight:950;letter-spacing:-.04em}
+  .performance{font-size:1.1rem;font-weight:800}
+  .hidden{display:none!important}
+  .toast{margin-top:10px;font-weight:700}
+  .teacher-note{font-size:.9rem;color:var(--muted);border-left:4px solid #c9d2ff;padding-left:10px}
+  footer{color:var(--muted);text-align:center;padding:18px 0 28px;font-size:.85rem}
+  @media (max-width:720px){
+    .app{padding:12px}
+    .setup-grid,.grid.two,.answer-row,.support-grid,.scorebox{grid-template-columns:1fr}
+    .hero{padding:20px}
+    .round-head{display:block}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    #progressBar{transition:none}
+  }
+</style>
+</head>
+<body>
+<main class="app" id="app">
+  <section class="hero" aria-labelledby="title">
+    <div class="round-tag" style="color:#d9e0ff">Grade 12 • B2–C2 • 20 minutes</div>
+    <h1 id="title">Tense Time Machine</h1>
+    <p>Repair a corrupted English timeline by choosing forms that fit the context — and defending the meaning behind them.</p>
+    <div class="topbar" aria-live="polite">
+      <span class="pill">Score: <strong id="scoreTop">0</strong></span>
+      <span class="pill">Round: <strong id="roundTop">Ready</strong></span>
+      <span class="pill" id="timer">20:00</span>
+    </div>
+    <div class="progress-shell" aria-label="Game progress">
+      <div id="progressBar"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="setup">
+    <div class="setup-grid">
+      <div>
+        <h2>Mission setup</h2>
+        <p>This version works for one learner or for one device shared by a team of four.</p>
+        <label for="teamName">Team / learner name</label>
+        <input id="teamName" type="text" maxlength="40" placeholder="e.g. Team Chronos" />
+        <div style="height:10px"></div>
+        <label for="mode">Play mode</label>
+        <select id="mode">
+          <option value="team">Team mode — discuss before choosing</option>
+          <option value="solo">Individual mode</option>
+        </select>
+        <div class="actions">
+          <button class="btn" id="startBtn" type="button">Start 20-minute mission</button>
+        </div>
+        <p class="micro">The timer is a pacing tool. When it reaches zero, the game remains usable so students can finish rather than lose work.</p>
+      </div>
+      <div class="support">
+        <strong>Team roles</strong>
+        <p class="micro">For teams of four, assign these verbally before starting.</p>
+        <p><b>Time Detective</b> — establishes the time relationship.<br>
+        <b>Aspect Detective</b> — decides completed / ongoing / repeated / prior.<br>
+        <b>Grammar Lawyer</b> — explains the choice.<br>
+        <b>Challenger</b> — tests alternative interpretations.</p>
+      </div>
+    </div>
+  </section>
+
+  <details class="support hidden" id="supportTool">
+    <summary>🧭 B2 Time Detective support card</summary>
+    <div class="support-grid">
+      <div class="support-card"><b>Simple</b><br><span class="micro">fact, habit, complete event</span></div>
+      <div class="support-card"><b>Continuous</b><br><span class="micro">activity in progress, temporary/background</span></div>
+      <div class="support-card"><b>Perfect</b><br><span class="micro">look backwards from another reference point</span></div>
+      <div class="support-card"><b>Perfect Continuous</b><br><span class="micro">look backwards + foreground activity/duration</span></div>
+    </div>
+    <p class="micro"><b>Clues, not rules:</b> since/for → often perfect; by + time → often perfect; this time tomorrow → often future continuous; finished past time → usually past simple.</p>
+  </details>
+
+  <section class="panel round" id="round1" data-round="1">
+    <div class="round-head">
+      <div>
+        <div class="round-tag">Round 1 • 4 minutes</div>
+        <h2>12-Tense Speed Sort</h2>
+        <p>Choose the tense/aspect label for each sentence. One point each.</p>
+      </div>
+      <span class="badge">12 points</span>
+    </div>
+    <div id="r1Questions"></div>
+    <div class="actions">
+      <button class="btn" id="checkR1" type="button">Lock Round 1</button>
+    </div>
+    <div id="r1Toast" class="toast" aria-live="polite"></div>
+  </section>
+
+  <section class="panel round" id="round2" data-round="2">
+    <div class="round-head">
+      <div>
+        <div class="round-tag">Round 2 • 5 minutes</div>
+        <h2>Context Clash</h2>
+        <p>For each item, choose the best form <b>and</b> the reason. Two points each.</p>
+      </div>
+      <span class="badge">16 points</span>
+    </div>
+    <div id="r2Questions"></div>
+    <div class="actions">
+      <button class="btn" id="checkR2" type="button">Lock Round 2</button>
+    </div>
+    <div id="r2Toast" class="toast" aria-live="polite"></div>
+  </section>
+
+  <section class="panel round" id="round3" data-round="3">
+    <div class="round-head">
+      <div>
+        <div class="round-tag">Round 3 • 5½ minutes</div>
+        <h2>Grammar Trap Raid</h2>
+        <p>Classify each item, then identify the best explanation. Two points each.</p>
+      </div>
+      <span class="badge">16 points</span>
+    </div>
+    <div id="r3Questions"></div>
+    <div class="actions">
+      <button class="btn" id="checkR3" type="button">Lock Round 3</button>
+    </div>
+    <div id="r3Toast" class="toast" aria-live="polite"></div>
+  </section>
+
+  <section class="panel round" id="round4" data-round="4">
+    <div class="round-head">
+      <div>
+        <div class="round-tag">Final Boss • 2½ minutes</div>
+        <h2>Rebuild the Timeline</h2>
+        <p>The original free-writing task has been adapted for automatic feedback: choose one sentence for each timeline slot to build a coherent mini-story.</p>
+      </div>
+      <span class="badge">6 points</span>
+    </div>
+    <div class="final-slots" id="finalSlots"></div>
+    <div class="q">
+      <h4>Optional C1–C2 production challenge</h4>
+      <p class="micro">Not auto-scored. Rewrite the four-sentence story in your own words while preserving the same time relationships.</p>
+      <textarea id="freeWrite" placeholder="Write your version here..."></textarea>
+    </div>
+    <div class="actions">
+      <button class="btn" id="checkFinal" type="button">Defeat the Final Boss</button>
+    </div>
+    <div id="finalToast" class="toast" aria-live="polite"></div>
+  </section>
+
+  <section class="panel round bonus" id="bonus" data-round="5">
+    <div class="round-head">
+      <div>
+        <div class="round-tag">Fast finisher vault</div>
+        <h2>C1–C2 Black Cards</h2>
+        <p>Optional. One bonus point per card.</p>
+      </div>
+      <span class="badge">+3 bonus</span>
+    </div>
+    <div id="bonusQuestions"></div>
+    <div class="actions">
+      <button class="btn secondary" id="checkBonus" type="button">Check bonus cards</button>
+      <button class="btn" id="finishBtn" type="button">Finish mission</button>
+    </div>
+    <div id="bonusToast" class="toast" aria-live="polite"></div>
+  </section>
+
+  <section class="panel hidden" id="results" aria-live="polite">
+    <div class="summary">
+      <div class="round-tag">Mission complete</div>
+      <h2 id="resultName">Timeline repaired</h2>
+      <div class="big-score"><span id="finalScore">0</span><span style="font-size:.42em;color:var(--muted)"> / 50 + bonus</span></div>
+      <div class="performance" id="performance"></div>
+      <div class="scorebox">
+        <div class="metric"><strong id="m1">0</strong>Speed Sort</div>
+        <div class="metric"><strong id="m2">0</strong>Context Clash</div>
+        <div class="metric"><strong id="m3">0</strong>Trap Raid</div>
+        <div class="metric"><strong id="m4">0</strong>Final Boss</div>
+      </div>
+      <p id="diagnostic" style="margin-top:16px"></p>
+      <div class="actions">
+        <button class="btn ghost" id="printBtn" type="button">Print / save result</button>
+        <button class="btn secondary" id="restartBtn" type="button">Restart</button>
+      </div>
+    </div>
+    <p class="teacher-note">This standalone version stores no student data and does not send a score to the Canvas Gradebook. For automatic grade passback, convert the activity to an LTI/H5P/SCORM workflow or recreate the scored items as a Canvas New Quiz.</p>
+  </section>
+
+  <footer>Time + viewpoint = tense/aspect choice.</footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const app = document.getElementById("app");
+  if (app.dataset.initialized === "true") return;
+  app.dataset.initialized = "true";
+
+  const tenseLabels = [
+    "Present Simple","Present Continuous","Present Perfect","Present Perfect Continuous",
+    "Past Simple","Past Continuous","Past Perfect","Past Perfect Continuous",
+    "Future Simple","Future Continuous","Future Perfect","Future Perfect Continuous"
+  ];
+
+  const r1 = [
+    ["Mina usually takes the bus to school.","Present Simple","A repeated present habit."],
+    ["She is revising for her exam right now.","Present Continuous","An activity is in progress around now."],
+    ["They have completed three practice tests so far.","Present Perfect","Completed events are connected to an unfinished present time frame."],
+    ["I have been studying since six this morning.","Present Perfect Continuous","The activity began earlier and duration/process is foregrounded up to now."],
+    ["We submitted the project yesterday.","Past Simple","A completed event sits inside a finished past-time period."],
+    ["At eight last night, I was editing my essay.","Past Continuous","The activity was in progress at a specified past point."],
+    ["By the time the teacher arrived, the class had finished the quiz.","Past Perfect","The finishing happened before another past reference point."],
+    ["He had been waiting for forty minutes before the bus finally came.","Past Perfect Continuous","Duration is foregrounded before a later past event."],
+    ["I think our team will win the debate.","Future Simple","A prediction/opinion is expressed with will."],
+    ["This time tomorrow, we will be taking our final examination.","Future Continuous","The activity will be in progress at a future point."],
+    ["By Friday, I will have finished my portfolio.","Future Perfect","The action will be complete by a future deadline."],
+    ["By next June, she will have been studying at this school for three years.","Future Perfect Continuous","Duration continues up to a future reference point."]
+  ];
+
+  const r2 = [
+    {
+      s:"I ______ Maya since Year 9. (know)",
+      forms:["have known","have been knowing","knew","am knowing"], a:0,
+      reasons:["'Know' is normally stative; the state began in the past and continues now.","'Since' always requires a continuous form.","The action is completely finished.","This is a temporary activity happening now."], r:0,
+      explain:"Present Perfect suits a continuing state. Stative know is not normally used in the continuous here."
+    },
+    {
+      s:"We ______ the report all morning, and we still haven't finished. (work on)",
+      forms:["worked on","have worked on","have been working on","had been working on"], a:2,
+      reasons:["The activity is finished in a finished past period.","The ongoing process/duration from past to present is foregrounded.","It happened before another past event.","It is a future arrangement."], r:1,
+      explain:"Present Perfect Continuous foregrounds an unfinished activity and its duration up to now."
+    },
+    {
+      s:"When the principal finally entered the hall, the students ______ for nearly an hour. (wait)",
+      forms:["waited","were waiting","had waited","had been waiting"], a:3,
+      reasons:["A durative activity continued before a later past reference point.","It is simply a finished past event with no earlier relationship.","It is happening now.","It will finish before a future deadline."], r:0,
+      explain:"Past Perfect Continuous shows duration continuing up to another past event."
+    },
+    {
+      s:"Don't phone me between 9:00 and 11:00 tomorrow. I ______ my final examination. (take)",
+      forms:["take","will take","will be taking","will have taken"], a:2,
+      reasons:["A scheduled timetable always requires Present Simple.","The activity will be in progress during a future time window.","It will already be finished before 9:00.","It is a spontaneous decision."], r:1,
+      explain:"Future Continuous locates an activity in progress during a future period."
+    },
+    {
+      s:"By 5 p.m. tomorrow, we ______ all the interviews. (finish)",
+      forms:["finish","will finish","will be finishing","will have finished"], a:3,
+      reasons:["Completion is viewed from a future deadline.","The activity is only a prediction with no deadline relationship.","The action is in progress now.","'By' always requires Past Perfect."], r:0,
+      explain:"Future Perfect looks back on a completed action from a future reference point."
+    },
+    {
+      s:"Look at that cyclist! He ______! (fall)",
+      forms:["falls","will fall","is going to fall","is falling every day"], a:2,
+      reasons:["The prediction is based on present visible evidence.","All predictions must use going to.","The sentence describes a timetable.","The speaker is reporting a past intention."], r:0,
+      explain:"Be going to is strongly motivated because the prediction is based on evidence visible now. 'Will' is not impossible in every imaginable context, but it is less contextually motivated here."
+    },
+    {
+      s:"I'll text you as soon as I ______ home. (get)",
+      forms:["will get","get","will have got","am going to get"], a:1,
+      reasons:["Present Simple normally follows future-time conjunctions such as 'as soon as'.","The event is a habitual present action.","Future clauses can never contain 'will'.","The verb 'get' is stative."], r:0,
+      explain:"A future meaning is expressed with Present Simple in the subordinate time clause after 'as soon as'."
+    },
+    {
+      s:"I ______ him yesterday, but I haven't spoken to him since. (see)",
+      forms:["have seen","saw","had seen","have been seeing"], a:1,
+      reasons:["'Yesterday' places the event in a finished past-time period.","'Since' forces both verbs into Present Perfect.","Seeing is a durative action here.","Past Perfect is required whenever two past-related forms occur."], r:0,
+      explain:"Past Simple is used because 'yesterday' is a finished past-time reference."
+    }
+  ];
+
+  const r3 = [
+    {
+      s:"When I was younger, I would own a small house near the beach.",
+      status:["Correct","Incorrect","Both possible / context dependent"], a:1,
+      reasons:["'Would' normally describes repeated past actions, not a past state such as own in this meaning.","'Would' is always interchangeable with 'used to'.","Ownership must always be Present Perfect.","The sentence is correct because 'when I was younger' licenses any past form."], r:0,
+      explain:"Use 'used to own' for the past state. 'Would' works naturally for repeated actions: 'Every summer, we would walk to the beach.'"
+    },
+    {
+      s:"I was going to email you last night, but my laptop suddenly died.",
+      status:["Correct","Incorrect","Both possible / context dependent"], a:0,
+      reasons:["'Was going to' can express a past intention that may not have been completed.","Future forms cannot be viewed from a past reference point.","The second clause requires Past Perfect.","'Going to' only describes physical movement."], r:0,
+      explain:"This is future in the past: an intended later action is viewed from a past point."
+    },
+    {
+      s:"This is the first time I visited London.",
+      status:["Correct","Incorrect","Both possible / context dependent"], a:1,
+      reasons:["With 'This is the first time...', standard usage normally takes Present Perfect: 'I have visited'.","Past Simple is never used with 'London'.","The sentence needs Future Perfect.","'First time' requires Present Continuous."], r:0,
+      explain:"Standard pattern: 'This is the first time I have visited London.' Compare past viewpoint: 'It was the first time I had visited London.'"
+    },
+    {
+      s:"I've worked here for six years. / I've been working here for six years.",
+      status:["Only the first is correct","Only the second is correct","Both possible / context dependent"], a:2,
+      reasons:["Both can describe a continuing situation; the continuous version more strongly foregrounds duration/activity.","Perfect and Perfect Continuous never overlap.","'For six years' requires only a continuous form.","The simple version means the speaker definitely stopped working here."], r:0,
+      explain:"Both are grammatical in suitable contexts. The contrast is largely one of aspectual viewpoint."
+    },
+    {
+      s:"If the weather will improve tomorrow, we'll have the match outside.",
+      status:["Correct","Incorrect","Both possible / context dependent"], a:1,
+      reasons:["In an ordinary first-conditional if-clause, Present Simple is normally used for the future condition.","Every future reference must contain will.","The main clause must be Present Simple.","'Tomorrow' requires be going to."], r:0,
+      explain:"Use: 'If the weather improves tomorrow, we'll have the match outside.'"
+    },
+    {
+      s:"I was about to leave when my phone rang.",
+      status:["Correct","Incorrect","Both possible / context dependent"], a:0,
+      reasons:["'Be about to + infinitive' expresses an event expected almost immediately; the phone call interrupts that expectation.","'About to' means a repeated habit.","Past Continuous is compulsory after 'when'.","The sentence must use 'would leave'."], r:0,
+      explain:"'Was about to leave' presents an imminent action from a past viewpoint."
+    },
+    {
+      s:"Daniel isn't here. He's gone to Singapore. / Daniel has been to Singapore several times.",
+      status:["Both correct, with different meanings","Both incorrect","Only 'has been' is correct"], a:0,
+      reasons:["'Has gone to' normally implies he is still there/on the journey; 'has been to' presents a completed visit and return.","The forms are perfect synonyms.","'Gone' can never appear after has.","'Been to' always means the person is still there."], r:0,
+      explain:"The choice changes the present relevance: absent because he went there vs accumulated experience of visiting."
+    },
+    {
+      s:"By next June, I will have studied English for ten years. / I will have been studying English for ten years.",
+      status:["Only Future Perfect is correct","Only Future Perfect Continuous is correct","Both possible / context dependent"], a:2,
+      reasons:["Both can be possible; the continuous form more explicitly foregrounds duration/continuity.","'For ten years' bans Future Perfect.","'By next June' bans continuous aspect.","The two forms always mean exactly the same thing."], r:0,
+      explain:"Both can work. Future Perfect Continuous makes the durative process especially salient."
+    }
+  ];
+
+  const finalSlots = [
+    {
+      label:"1. Yesterday: establish an earlier past activity",
+      options:[
+        "By the time our coach arrived yesterday, we had been rehearsing for two hours.",
+        "By the time our coach arrived yesterday, we have been rehearsing for two hours.",
+        "By the time our coach arrives yesterday, we rehearsed for two hours."
+      ], a:0
+    },
+    {
+      label:"2. Today: connect past work to the present",
+      options:[
+        "We fixed most of the problems tomorrow.",
+        "We have fixed most of the problems since then.",
+        "We had fixed most of the problems since tomorrow."
+      ], a:1
+    },
+    {
+      label:"3. Tomorrow: express a personal arrangement",
+      options:[
+        "We're meeting the judges at nine tomorrow.",
+        "We met the judges at nine tomorrow.",
+        "We have met the judges at nine tomorrow."
+      ], a:0
+    },
+    {
+      label:"4. Tomorrow: show completion by a future point + correct future time clause",
+      options:[
+        "By noon, we will have presented our case, and we'll celebrate when the results come out.",
+        "By noon, we presented our case, and we'll celebrate when the results will come out.",
+        "By noon, we will be presenting our case yesterday, and celebrate when the results came out."
+      ], a:0
+    }
+  ];
+
+  const bonus = [
+    {
+      s:"Hardly ______ the examination ______ the fire alarm went off.",
+      opts:["we had started / when","had we started / when","did we start / than","we started / than"], a:1,
+      explain:"After negative/restrictive 'Hardly' in this pattern, inversion is used: 'Hardly had we started ... when ...'."
+    },
+    {
+      s:"The president was to have opened the conference, but his flight was cancelled. What does the structure imply?",
+      opts:["The opening was planned/expected but did not happen.","The opening is happening now.","The opening happens habitually.","The speaker is uncertain whether a conference exists."], a:0,
+      explain:"'Was/were to have + past participle' can express a past plan or expectation that was not fulfilled."
+    },
+    {
+      s:"Which sentence most strongly foregrounds an ongoing temporary activity rather than a completed achievement?",
+      opts:["I've read the book.","I've been reading the book.","I had read the book by Monday.","I read the book last year."], a:1,
+      explain:"Present Perfect Continuous foregrounds the ongoing/recent activity; completion is not asserted in the same way."
+    }
+  ];
+
+  const state = {
+    score:0, r1:0, r2:0, r3:0, r4:0, bonus:0,
+    current:0, started:false, locked:{r1:false,r2:false,r3:false,r4:false,bonus:false},
+    seconds:1200, interval:null
+  };
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+
+  function shuffledIndices(length){
+    const arr = Array.from({length}, (_, i) => i);
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function selectHTML(id, options, placeholder="Choose..."){
+    const order = shuffledIndices(options.length);
+    return `<select id="${id}" aria-label="${esc(placeholder)}">
+      <option value="">${esc(placeholder)}</option>
+      ${order.map(i=>`<option value="${i}">${esc(options[i])}</option>`).join("")}
+    </select>`;
+  }
+
+  function renderR1(){
+    $("r1Questions").innerHTML = r1.map((q,i)=>`
+      <div class="q" id="r1q${i}">
+        <h4>${i+1}</h4>
+        <div class="sentence">${esc(q[0])}</div>
+        ${selectHTML(`r1a${i}`, tenseLabels, "Choose tense/aspect")}
+        <div class="feedback" id="r1f${i}"></div>
+      </div>`).join("");
+  }
+
+  function renderR2(){
+    $("r2Questions").innerHTML = r2.map((q,i)=>`
+      <div class="q" id="r2q${i}">
+        <h4>${i+1}</h4>
+        <div class="sentence">${esc(q.s)}</div>
+        <div class="answer-row">
+          <div><label for="r2a${i}">Best form</label>${selectHTML(`r2a${i}`,q.forms,"Choose form")}</div>
+          <div><label for="r2r${i}">Best reason</label>${selectHTML(`r2r${i}`,q.reasons,"Choose reason")}</div>
+        </div>
+        <div class="feedback" id="r2f${i}"></div>
+      </div>`).join("");
+  }
+
+  function renderR3(){
+    $("r3Questions").innerHTML = r3.map((q,i)=>`
+      <div class="q" id="r3q${i}">
+        <h4>${i+1}</h4>
+        <div class="sentence">${esc(q.s)}</div>
+        <div class="answer-row">
+          <div><label for="r3a${i}">Classification</label>${selectHTML(`r3a${i}`,q.status,"Correct / incorrect / depends?")}</div>
+          <div><label for="r3r${i}">Best explanation</label>${selectHTML(`r3r${i}`,q.reasons,"Choose explanation")}</div>
+        </div>
+        <div class="feedback" id="r3f${i}"></div>
+      </div>`).join("");
+  }
+
+  function renderFinal(){
+    $("finalSlots").innerHTML = finalSlots.map((q,i)=>`
+      <div class="q" id="fq${i}">
+        <h4>${esc(q.label)}</h4>
+        <div class="choice-set">
+        ${shuffledIndices(q.options.length).map(j=>`
+          <label class="choice">
+            <input type="radio" name="final${i}" value="${j}" />
+            <span>${esc(q.options[j])}</span>
+          </label>`).join("")}
+        </div>
+        <div class="feedback" id="ff${i}"></div>
+      </div>`).join("");
+  }
+
+  function renderBonus(){
+    $("bonusQuestions").innerHTML = bonus.map((q,i)=>`
+      <div class="q" id="bq${i}">
+        <h4>Black Card ${i+1}</h4>
+        <div class="sentence">${esc(q.s)}</div>
+        ${selectHTML(`ba${i}`,q.opts,"Choose answer")}
+        <div class="feedback" id="bf${i}"></div>
+      </div>`).join("");
+  }
+
+  function allSelected(ids){
+    return ids.every(id => $(id) && $(id).value !== "");
+  }
+
+  function markCard(cardId, feedbackId, good, text){
+    const card=$(cardId), fb=$(feedbackId);
+    card.classList.remove("correct","incorrect");
+    card.classList.add(good ? "correct":"incorrect");
+    fb.className=`feedback show ${good?"good":"bad"}`;
+    fb.textContent=text;
+  }
+
+  function updateTop(){
+    $("scoreTop").textContent=state.score;
+    const labels=["Ready","Speed Sort","Context Clash","Trap Raid","Final Boss","Bonus / Finish"];
+    $("roundTop").textContent=labels[state.current] || "Complete";
+    const pct = state.current===0 ? 0 : Math.min(100, ((state.current-1)/4)*100);
+    $("progressBar").style.width = pct+"%";
+  }
+
+  function setRound(n){
+    document.querySelectorAll(".round").forEach(x=>x.classList.remove("active"));
+    state.current=n;
+    if(n>=1 && n<=4) $(`round${n}`).classList.add("active");
+    if(n===5) $("bonus").classList.add("active");
+    updateTop();
+    const target = n===5 ? $("bonus") : $(`round${n}`);
+    if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function startTimer(){
+    clearInterval(state.interval);
+    const tick=()=>{
+      const m=Math.floor(state.seconds/60);
+      const s=state.seconds%60;
+      $("timer").textContent=`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+      $("timer").classList.toggle("urgent",state.seconds<=300 && state.seconds>0);
+      $("timer").classList.toggle("expired",state.seconds===0);
+      if(state.seconds<=0){ clearInterval(state.interval); return; }
+      state.seconds--;
+    };
+    tick();
+    state.interval=setInterval(tick,1000);
+  }
+
+  $("startBtn").addEventListener("click",()=>{
+    if(state.started) return;
+    state.started=true;
+    $("setup").classList.add("hidden");
+    $("supportTool").classList.remove("hidden");
+    startTimer();
+    setRound(1);
+  });
+
+  $("checkR1").addEventListener("click",()=>{
+    if(state.locked.r1) return;
+    const ids=r1.map((_,i)=>`r1a${i}`);
+    if(!allSelected(ids)){ $("r1Toast").textContent="Answer all 12 items before locking the round."; return; }
+    let pts=0;
+    r1.forEach((q,i)=>{
+      const good = tenseLabels[Number($(`r1a${i}`).value)]===q[1];
+      if(good) pts++;
+      markCard(`r1q${i}`,`r1f${i}`,good,`${good?"✓ Correct.":"✗ Best answer: "+q[1]+". "}${q[2]}`);
+      $(`r1a${i}`).disabled=true;
+    });
+    state.r1=pts; state.score+=pts; state.locked.r1=true;
+    $("r1Toast").textContent=`Round 1: ${pts}/12.`;
+    $("checkR1").disabled=true;
+    updateTop();
+    setTimeout(()=>setRound(2),650);
+  });
+
+  $("checkR2").addEventListener("click",()=>{
+    if(state.locked.r2) return;
+    const ids=[];
+    r2.forEach((_,i)=>ids.push(`r2a${i}`,`r2r${i}`));
+    if(!allSelected(ids)){ $("r2Toast").textContent="Choose both a form and a reason for every item."; return; }
+    let pts=0;
+    r2.forEach((q,i)=>{
+      const formGood=Number($(`r2a${i}`).value)===q.a;
+      const reasonGood=Number($(`r2r${i}`).value)===q.r;
+      pts += (formGood?1:0)+(reasonGood?1:0);
+      markCard(`r2q${i}`,`r2f${i}`,formGood&&reasonGood,
+        `${formGood?"✓ Form":"✗ Form"}; ${reasonGood?"✓ reasoning":"✗ reasoning"}. ${q.explain}`);
+      $(`r2a${i}`).disabled=true; $(`r2r${i}`).disabled=true;
+    });
+    state.r2=pts; state.score+=pts; state.locked.r2=true;
+    $("r2Toast").textContent=`Round 2: ${pts}/16.`;
+    $("checkR2").disabled=true;
+    updateTop();
+    setTimeout(()=>setRound(3),650);
+  });
+
+  $("checkR3").addEventListener("click",()=>{
+    if(state.locked.r3) return;
+    const ids=[];
+    r3.forEach((_,i)=>ids.push(`r3a${i}`,`r3r${i}`));
+    if(!allSelected(ids)){ $("r3Toast").textContent="Classify every item and choose every explanation first."; return; }
+    let pts=0;
+    r3.forEach((q,i)=>{
+      const aGood=Number($(`r3a${i}`).value)===q.a;
+      const rGood=Number($(`r3r${i}`).value)===q.r;
+      pts+=(aGood?1:0)+(rGood?1:0);
+      markCard(`r3q${i}`,`r3f${i}`,aGood&&rGood,
+        `${aGood?"✓ Classification":"✗ Classification"}; ${rGood?"✓ explanation":"✗ explanation"}. ${q.explain}`);
+      $(`r3a${i}`).disabled=true; $(`r3r${i}`).disabled=true;
+    });
+    state.r3=pts; state.score+=pts; state.locked.r3=true;
+    $("r3Toast").textContent=`Round 3: ${pts}/16.`;
+    $("checkR3").disabled=true;
+    updateTop();
+    setTimeout(()=>setRound(4),650);
+  });
+
+  $("checkFinal").addEventListener("click",()=>{
+    if(state.locked.r4) return;
+    const picks=finalSlots.map((_,i)=>document.querySelector(`input[name="final${i}"]:checked`));
+    if(picks.some(x=>!x)){ $("finalToast").textContent="Choose one sentence in every timeline slot."; return; }
+    let correct=0;
+    finalSlots.forEach((q,i)=>{
+      const good=Number(picks[i].value)===q.a;
+      if(good) correct++;
+      markCard(`fq${i}`,`ff${i}`,good,good?"✓ This preserves the intended time relationship.":"✗ Recheck the reference point and aspect in this slot.");
+      document.querySelectorAll(`input[name="final${i}"]`).forEach(x=>x.disabled=true);
+    });
+    let pts=correct;
+    if(correct===4) pts+=2; // coherence bonus
+    state.r4=pts; state.score+=pts; state.locked.r4=true;
+    $("finalToast").textContent=`Final Boss: ${pts}/6${correct===4?" — +2 coherence bonus!":""}`;
+    $("checkFinal").disabled=true;
+    updateTop();
+    setTimeout(()=>setRound(5),650);
+  });
+
+  $("checkBonus").addEventListener("click",()=>{
+    if(state.locked.bonus) return;
+    const ids=bonus.map((_,i)=>`ba${i}`);
+    if(!allSelected(ids)){ $("bonusToast").textContent="Complete all three bonus cards, or skip them and finish the mission."; return; }
+    let pts=0;
+    bonus.forEach((q,i)=>{
+      const good=Number($(`ba${i}`).value)===q.a;
+      if(good) pts++;
+      markCard(`bq${i}`,`bf${i}`,good,`${good?"✓ Correct.":"✗ Not quite. "}${q.explain}`);
+      $(`ba${i}`).disabled=true;
+    });
+    state.bonus=pts; state.score+=pts; state.locked.bonus=true;
+    $("bonusToast").textContent=`Bonus: +${pts}/3.`;
+    $("checkBonus").disabled=true;
+    updateTop();
+  });
+
+  function finish(){
+    clearInterval(state.interval);
+    document.querySelectorAll(".round").forEach(x=>x.classList.remove("active"));
+    $("supportTool").classList.add("hidden");
+    $("results").classList.remove("hidden");
+    $("progressBar").style.width="100%";
+    $("roundTop").textContent="Complete";
+    const name=$("teamName").value.trim() || "Timeline team";
+    $("resultName").textContent=`${name}: timeline repaired`;
+    $("finalScore").textContent=state.score;
+    $("m1").textContent=`${state.r1}/12`;
+    $("m2").textContent=`${state.r2}/16`;
+    $("m3").textContent=`${state.r3}/16`;
+    $("m4").textContent=`${state.r4}/6`;
+    const core=state.r1+state.r2+state.r3+state.r4;
+    let perf,diag;
+    if(core>=44){
+      perf="Expert time traveller";
+      diag="Strong control of tense, aspect and viewpoint. Your next step is to justify subtle alternatives where more than one form is grammatical.";
+    } else if(core>=36){
+      perf="Timeline specialist";
+      diag="Good contextual control. Revisit any red cards, especially perfect vs perfect continuous and future-reference structures.";
+    } else if(core>=27){
+      perf="Timeline repairer";
+      diag="Core distinctions are developing. Focus on reference points: past-before-past, past-to-present, and completion/duration viewed from the future.";
+    } else {
+      perf="Time detective in training";
+      diag="Use the four-part support model: Simple = fact/event; Continuous = in progress; Perfect = look backwards; Perfect Continuous = look backwards + duration/process.";
+    }
+    $("performance").textContent=`${perf}${state.bonus?` • Bonus +${state.bonus}`:""}`;
+    $("diagnostic").textContent=diag;
+    $("results").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  $("finishBtn").addEventListener("click",finish);
+  $("printBtn").addEventListener("click",()=>window.print());
+  $("restartBtn").addEventListener("click",()=>window.location.reload());
+
+  renderR1(); renderR2(); renderR3(); renderFinal(); renderBonus(); updateTop();
+})();
+</script>
+</body>
+</html>
